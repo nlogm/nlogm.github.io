@@ -1,0 +1,69 @@
+<html>
+	<body style='margin:0px'>
+		<canvas id='c' width='400' height='400'></canvas>
+		<script src='performance-test.js'></script>
+		<script id='vshader' type='x-shader'>
+			attribute vec2 aVertexPosition;
+			void main() {
+				gl_Position = vec4(aVertexPosition, 0, 1);
+			}
+		</script>
+		<script id='fshader' type='x-shader'>
+		#ifdef GL_FRAGMENT_PRECISION_HIGH
+			precision highp float;
+		#else
+			precision mediump float;
+		#endif
+			precision mediump int;
+			uniform vec2 uCanvasSize;
+			vec4 calc(vec2 texCoord) {
+				float x = 0.0;
+				float y = 0.0;
+				float v = 10000.0;
+				float j = 10000.0;
+				for (int iteration = 0; iteration < 100; ++iteration) {
+					float xtemp = x*x-y*y+texCoord.x;
+					y = 2.0*x*y+texCoord.y;
+					x = xtemp;
+					v = min(v, abs(x*x+y*y));
+					j = min(j, abs(x*y));
+					if (x*x+y*y >= 8.0) {
+						float d = (float(iteration) - (log(log(sqrt(x*x+y*y))) / log(2.0))) / 50.0;
+						v = (1.0 - v) / 2.0;
+						j = (1.0 - j) / 2.0;
+						return vec4(d,d+v,d+j,1);
+					}
+				}
+				return vec4(0,0,0,1);
+			}
+			void main() {
+				vec2 texCoord = (gl_FragCoord.xy / uCanvasSize.xy) * 2.0 - vec2(1.0,1.0);
+				gl_FragColor = calc(texCoord);
+			}
+		</script>
+		<script>
+			var c = document.getElementById('c');
+			var gl = c.getContext('experimental-webgl');
+			var vertexPosBuffer = screenQuad();
+			var vs = document.getElementById('vshader').textContent;
+			var fs = document.getElementById('fshader').textContent;
+			var program = createProgram(vs,fs);
+			gl.useProgram(program);
+			program.vertexPosAttrib = gl.getAttribLocation(program, 'aVertexPosition');
+			program.canvasSizeUniform = gl.getUniformLocation(program, 'uCanvasSize');
+			gl.enableVertexAttribArray(program.vertexPosArray);
+			gl.vertexAttribPointer(program.vertexPosAttrib, vertexPosBuffer.itemSize, gl.FLOAT, false, 0, 0);
+			gl.uniform2f(program.canvasSizeUniform, c.width, c.height);
+			startTest();
+			var iv = setInterval(draw, 1);
+			var count = 0;
+			function draw() {
+				gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertexPosBuffer.numItems);
+				if (++count == 500) {
+					clearInterval(iv);
+					finishTest();
+				}
+			};
+		</script>
+	</body>
+</html>
