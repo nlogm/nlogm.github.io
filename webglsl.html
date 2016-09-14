@@ -9,8 +9,8 @@
 
 	 <script id="2d-fragment-shader" type="x-shader/x-fragment">
 	 #define NUM_STEPS   50
-  #define ZOOM_FACTOR 2.0
-  #define X_OFFSET    0.5
+  #define ZOOM_FACTOR 1.0
+  #define X_OFFSET    2.0
  
   #ifdef GL_FRAGMENT_PRECISION_HIGH
     precision highp float;
@@ -25,7 +25,7 @@
     int steps;
     float normalizedX = (gl_FragCoord.x - 320.0) / 640.0 * ZOOM_FACTOR *
                         (640.0 / 480.0) - X_OFFSET;
-    float normalizedY = (gl_FragCoord.y - 240.0) / 480.0 * ZOOM_FACTOR;
+    float normalizedY = (gl_FragCoord.y - 520.0) / 480.0 * ZOOM_FACTOR;
  
     z.x = normalizedX;
     z.y = normalizedY;
@@ -47,7 +47,7 @@
     }
  
     if (steps == NUM_STEPS-1) {
-      gl_FragColor = vec4(gl_FragCoord.x / 640.0, gl_FragCoord.y / 480.0, 0.0, 1.0);
+      gl_FragColor = vec4((gl_FragCoord.x - 800.5) / 640.0, (gl_FragCoord.y - 300.0) / 480.0, 0.0, 1.0);
     } else {
       gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
     }
